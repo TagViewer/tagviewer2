@@ -39,7 +39,10 @@ class SortMethods(Enum):
 
 
 class StateManager():
-	def __init__(self):
+	def __init__(self, win: Gtk.Window, conf: dict, cache: dict):
+		self.win = win
+		self.conf = conf
+		self.cache = cache
 		self.tagviewer_meta = {}
 		self.open_directory = None
 		self.media_number = 1
