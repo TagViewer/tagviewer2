@@ -220,7 +220,7 @@ class MainWindow(Gtk.Window):
 		self.top_bar_items = {
 			'open_tagspace_button': add_toolbar_button('Open TagSpace', 'folder'),
 			'new_tagspace_button': add_toolbar_button('New TagSpace', 'create_new_folder'),
-			'recent_tagspace_button': add_toolbar_button('Open Previous TagSpace', 'undo'),
+			'recent_tagspace_button': add_toolbar_button('Open Previous TagSpace', 'undo', disabled=True),
 			'add_media_button': add_toolbar_button('Add Media', 'add_photo_alternate', disabled=True),
 			'separator1': add_toolbar_separator(),
 			'go_first_button': add_toolbar_button('First Media', 'first_page', disabled=True),
