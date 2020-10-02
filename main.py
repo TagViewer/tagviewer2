@@ -181,6 +181,8 @@ class MainWindow(Gtk.Window):
 
 		check_config(self._config)
 
+		self.state = StateManager(self, self.config, self.cache)
+
 		css_provider = Gtk.CssProvider()
 		css_provider.load_from_path('/home/matt/Desktop/code/python/tagviewer2/main.css')
 		context = Gtk.StyleContext()
