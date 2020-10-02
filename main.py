@@ -67,7 +67,7 @@ class StateManager():
 
 	def toggle_fullscreen(self):
 		if self.is_fullscreen:
-			pass  # TODO: Change icon for fullscreen button
+			self.win.top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file('icons/fullscreen.svg')
 			self.win.unfullscreen()
 			self.win.top_bar_items['left_expander'].set_expand(self.conf['ui']['center_toolbar_items']['in_normal'])
 			pass  # TODO: disable autohide for widgets
@@ -75,7 +75,7 @@ class StateManager():
 			if self.slideshow_active and self.conf['behavior']['slideshow']['end_on_fullscreen_exit']:
 				pass  # TODO: End slideshow
 		else:
-			pass  # TODO: Change icon for fullscreen button
+			self.win.top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file('icons/fullscreen_exit.svg')
 			self.win.fullscreen()
 			self.win.top_bar_items['left_expander'].set_expand(self.conf['ui']['center_toolbar_items']['in_fullscreen'])
 			pass  # TODO: enable autohide for widgets
