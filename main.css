@@ -1,0 +1,7 @@
+toolbar button {
+  padding: 3px 2px;
+}
+toolbar separator {
+  border-left: .5px solid rgba(0,0,0,0.2);
+  border-right: .5px solid rgba(0,0,0,0.2);
+}
