@@ -1,7 +1,11 @@
 toolbar button {
   padding: 3px 2px;
 }
-toolbar separator {
+toolbar separator:not(.invisible) {
   border-left: .5px solid rgba(0,0,0,0.2);
   border-right: .5px solid rgba(0,0,0,0.2);
+}
+toolbar separator.invisible {
+  margin-left: 0;
+  margin-right: 0;
 }

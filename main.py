@@ -50,6 +50,8 @@ class StateManager():
 		self.item_properties = []
 		self.sort_by = BuiltinSortProps.INTRINSIC
 		self.sort_method = None
+		self.is_fullscreen = False
+		self.slideshow_active = False
 	filters_active = property(lambda self: len(self.current_filters) > 0)
 	num_of_files = property(lambda self: len(self.current_files_json))
 	current_files = property(lambda self: map(itemgetter('_path'),
@@ -62,6 +64,22 @@ class StateManager():
 			if self.sort_by != BuiltinSortProps.INTRINSIC:
 				pass
 		else: return []
+
+	def toggle_fullscreen(self):
+		if self.is_fullscreen:
+			pass  # TODO: Change icon for fullscreen button
+			self.win.unfullscreen()
+			self.win.top_bar_items['left_expander'].set_expand(self.conf['ui']['center_toolbar_items']['in_normal'])
+			pass  # TODO: disable autohide for widgets
+			self.is_fullscreen = False
+			if self.slideshow_active and self.conf['behavior']['slideshow']['end_on_fullscreen_exit']:
+				pass  # TODO: End slideshow
+		else:
+			pass  # TODO: Change icon for fullscreen button
+			self.win.fullscreen()
+			self.win.top_bar_items['left_expander'].set_expand(self.conf['ui']['center_toolbar_items']['in_fullscreen'])
+			pass  # TODO: enable autohide for widgets
+			self.is_fullscreen = True
 
 
 def debounce(wait):
@@ -222,7 +240,15 @@ class MainWindow(Gtk.Window):
 			self.top_bar.insert(separator, self.top_bar.get_n_items())
 			return separator
 
+		def add_toolbar_expander(expand=False):
+			expander = Gtk.SeparatorToolItem()
+			expander.set_draw(False)
+			expander.set_expand(expand)
+			self.top_bar.insert(expander, self.top_bar.get_n_items())
+			return expander
+
 		self.top_bar_items = {
+			'left_expander': add_toolbar_expander(expand=self.config['ui']['center_toolbar_items']['in_normal']),
 			'open_tagspace_button': add_toolbar_button('Open TagSpace', 'folder'),
 			'new_tagspace_button': add_toolbar_button('New TagSpace', 'create_new_folder'),
 			'recent_tagspace_button': add_toolbar_button('Open Previous TagSpace', 'undo', disabled=True),
@@ -250,8 +276,10 @@ class MainWindow(Gtk.Window):
 			'help_button': add_toolbar_button('TagViewer Help', 'help'),
 			'separator6': add_toolbar_separator(),
 			'fullscreen_toggle_button': add_toolbar_button('Toggle Fullscreen', 'fullscreen'),
-			'dark_mode_toggle_button': add_toolbar_button('Light/Dark Mode', 'invert_colors')
+			'dark_mode_toggle_button': add_toolbar_button('Light/Dark Mode', 'invert_colors'),
+			'right_expander': add_toolbar_expander(expand=True)
 		}
+		self.top_bar_items['fullscreen_toggle_button'].connect('clicked', lambda widget: self.state.toggle_fullscreen())
 
 		self.base.pack_start(self.top_bar, False, False, 0)
 

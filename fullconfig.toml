@@ -2,6 +2,9 @@
 dark = false # toggle dark theme
 injections = "" # inject rules into the CSS file.
 save_sidebar_widths = true # save widths between restarts?
+[ui.center_toolbar_items]
+in_normal = false
+in_fullscreen = true
 
 [behavior.history] # the first two options are completely independent.
 save_history = true # save TagSpace history? (for Recently Opened)
