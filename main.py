@@ -14,6 +14,8 @@ import appdirs
 import gi
 import toml
 
+from stateman import StateMan
+
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 
@@ -36,50 +38,6 @@ class SortMethods(Enum):
 	SORT_91 = enumauto()
 	SORT_TF = enumauto()
 	SORT_FT = enumauto()
-
-
-class StateManager():
-	def __init__(self, win: Gtk.Window, conf: dict, cache: dict):
-		self.win = win
-		self.conf = conf
-		self.cache = cache
-		self.tagviewer_meta = {}
-		self.open_directory = None
-		self.media_number = 1
-		self.current_filters = []
-		self.item_properties = []
-		self.sort_by = BuiltinSortProps.INTRINSIC
-		self.sort_method = None
-		self.is_fullscreen = False
-		self.slideshow_active = False
-	filters_active = property(lambda self: len(self.current_filters) > 0)
-	num_of_files = property(lambda self: len(self.current_files_json))
-	current_files = property(lambda self: map(itemgetter('_path'),
-	                         self.current_files_json))
-	tagspace_is_open = property(lambda self: self.open_directory is not None)
-
-	@property
-	def current_files_json(self):
-		if self.tagspace_is_open:
-			if self.sort_by != BuiltinSortProps.INTRINSIC:
-				pass
-		else: return []
-
-	def toggle_fullscreen(self):
-		if self.is_fullscreen:
-			self.win.top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file('icons/fullscreen.svg')
-			self.win.unfullscreen()
-			self.win.top_bar_items['left_expander'].set_expand(self.conf['ui']['center_toolbar_items']['in_normal'])
-			pass  # TODO: disable autohide for widgets
-			self.is_fullscreen = False
-			if self.slideshow_active and self.conf['behavior']['slideshow']['end_on_fullscreen_exit']:
-				pass  # TODO: End slideshow
-		else:
-			self.win.top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file('icons/fullscreen_exit.svg')
-			self.win.fullscreen()
-			self.win.top_bar_items['left_expander'].set_expand(self.conf['ui']['center_toolbar_items']['in_fullscreen'])
-			pass  # TODO: enable autohide for widgets
-			self.is_fullscreen = True
 
 
 def debounce(wait):
@@ -199,7 +157,41 @@ class MainWindow(Gtk.Window):
 
 		check_config(self._config)
 
-		self.state = StateManager(self, self.config, self.cache)
+		self.state = StateMan({
+			'tagviewer_meta': {},
+			'files': (lambda model: model['tagviewer_meta']['files'] if 'files' in tagviewer_meta else [], ('tagviewer_meta',)),
+			'open_directory': None,
+			'media_number': 1,
+			'filters': [],
+			'sort_options': None,
+			'is_fullscreen': False,
+			'dark_mode': False,
+			'slideshow_active': False,
+			'filters_active': (lambda model: len(model['filters']) > 0, ('filters',)),
+			'num_of_files': (lambda model: len(model['files'], ('files',))),
+			'file_paths': (lambda model: map(itemgetter('_path'), model['files']), ('files',)),
+			'tagspace_is_open': (lambda model: model['open_directory'] is not None, ('open_directory')),
+			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in files else {}, ('media_number',))  # deps doesn't include `files` intentionally!
+		}, refs={'win': self, 'conf': self.config, 'cache': self.cache, 'settings': Gtk.Settings.get_default()})
+
+		def handle_fullscreen_change(model, _):
+			if model['is_fullscreen']:
+				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen_exit.svg')
+				model.refs['win'].fullscreen()
+				model.refs['win'].top_bar_items['left_expander'].set_expand(model.refs['conf']['ui']['center_toolbar_items']['in_fullscreen'])
+				pass  # TODO: enable autohide for widgets
+			else:
+				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen.svg')
+				model.refs['win'].unfullscreen()
+				model.refs['win'].top_bar_items['left_expander'].set_expand(model.refs['conf']['ui']['center_toolbar_items']['in_normal'])
+				pass  # TODO: disable autohide for widgets
+				if model['slideshow_active'] and model.refs['conf']['behavior']['slideshow']['end_on_fullscreen_exit']:
+					pass  # TODO: End slideshow
+		self.state.bind('is_fullscreen', handle_fullscreen_change)
+
+		self.state.bind('dark_mode', lambda model, _: model.refs['settings'].set_property('gtk-application-prefer-dark-theme', model['dark_mode']))
+
+		self.state['dark_mode'] = self.config['ui']['dark']
 
 		css_provider = Gtk.CssProvider()
 		css_provider.load_from_path('main.css')
@@ -220,7 +212,7 @@ class MainWindow(Gtk.Window):
 			button.set_tooltip_text(label)
 			image = Gtk.Image()
 			image.show()
-			image.set_from_file(f'icons/{icon_name}.svg')
+			image.set_from_file(f'icons/{"dark" if self.state["dark_mode"] else "light"}/{icon_name}.svg')
 			button.set_icon_widget(image)
 			button.icon_name = icon_name
 			if callback is not None: button.connect('clicked', callback)
@@ -281,7 +273,24 @@ class MainWindow(Gtk.Window):
 			'dark_mode_toggle_button': add_toolbar_button('Light/Dark Mode', 'invert_colors'),
 			'right_expander': add_toolbar_expander(expand=True)
 		}
-		self.top_bar_items['fullscreen_toggle_button'].connect('clicked', lambda widget: self.state.toggle_fullscreen())
+
+		def invert_icon_colors(model, _):
+			top_bar_items = model.refs['win'].top_bar_items
+			for btn in filter(lambda item: item.endswith('button'), top_bar_items):
+				item = top_bar_items[btn]
+				if btn == 'fullscreen_toggle_button':
+					item.get_icon_widget().set_from_file(f'icons/{"dark" if model["dark_mode"] else "light"}/{"fullscreen_exit" if model["is_fullscreen"] else "fullscreen"}.svg')
+				else:
+					item.get_icon_widget().set_from_file(f'icons/{"dark" if model["dark_mode"] else "light"}/{item.icon_name}.svg')
+		self.state.bind('dark_mode', invert_icon_colors)
+
+		def toggle_fullscreen():
+			self.state['is_fullscreen'] = not self.state['is_fullscreen']
+		self.top_bar_items['fullscreen_toggle_button'].connect('clicked', lambda widget: toggle_fullscreen())
+
+		def toggle_dark_mode():
+			self.state['dark_mode'] = not self.state['dark_mode']
+		self.top_bar_items['dark_mode_toggle_button'].connect('clicked', lambda widget: toggle_dark_mode())
 
 		self.base.pack_start(self.top_bar, False, False, 0)
 
