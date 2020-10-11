@@ -6,6 +6,8 @@ save_sidebar_widths = true # save widths between restarts?
 in_normal = false
 in_fullscreen = true
 
+[behavior]
+persist_media_on_sort_change = true # If true, change the media index to keep the shown media the same when the sort method is changed. If false, keep the index the same, changing the media
 [behavior.history] # the first two options are completely independent.
 save_history = true # save TagSpace history? (for Recently Opened)
 save_previous = true # save previous TagSpace?
