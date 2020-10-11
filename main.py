@@ -217,6 +217,7 @@ class MainWindow(Gtk.Window):
 			button = Gtk.ToolButton()
 			button.set_sensitive(not disabled)
 			button.set_label(label)
+			button.set_tooltip_text(label)
 			image = Gtk.Image()
 			image.show()
 			image.set_from_file(f'icons/{icon_name}.svg')
