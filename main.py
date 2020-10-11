@@ -222,6 +222,7 @@ class MainWindow(Gtk.Window):
 			image.show()
 			image.set_from_file(f'icons/{icon_name}.svg')
 			button.set_icon_widget(image)
+			button.icon_name = icon_name
 			if callback is not None: button.connect('clicked', callback)
 			self.top_bar.insert(button, self.top_bar.get_n_items())
 			return button
