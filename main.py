@@ -202,7 +202,7 @@ class MainWindow(Gtk.Window):
 		self.state = StateManager(self, self.config, self.cache)
 
 		css_provider = Gtk.CssProvider()
-		css_provider.load_from_path('/home/matt/Desktop/code/python/tagviewer2/main.css')
+		css_provider.load_from_path('main.css')
 		context = Gtk.StyleContext()
 		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
