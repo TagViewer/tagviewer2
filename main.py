@@ -60,80 +60,6 @@ def debounce(wait):
 	return decorator
 
 
-def check_config(obj):
-	def config_test(value, prop, expected):
-		if not isinstance(value, expected): warn(f'Bad type in config.toml: '
-		                                         f'for {prop} expected type '
-		                                         f'{expected}, got {repr(value)} '
-		                                         f'of type {type(value)}')
-	if 'ui' in obj:
-		config_test(obj['ui'], 'ui', dict)
-		if 'dark' in obj['ui']: config_test(obj['ui']['dark'], 'ui.dark', bool)
-		if 'injections' in obj['ui']: config_test(obj['ui']["injections"], 'ui.injections', str)
-		if 'sidebar_widths' in obj['ui']:
-			config_test(obj['ui']["sidebar_widths"], 'ui.sidebar_widths', dict)
-			if 'file_list' in obj['ui']["sidebar_widths"]: config_test(obj['ui']["sidebar_widths"]["file_list"], 'ui.sidebar_widths.file_list', int)
-			if 'aside' in obj['ui']["sidebar_widths"]: config_test(obj['ui']["sidebar_widths"]["aside"], 'ui.sidebar_widths.aside', int)
-			if 'save' in obj['ui']["sidebar_widths"]: config_test(obj['ui']["sidebar_widths"]["save"], 'ui.sidebar_widths.save', bool)
-	if 'behavior' in obj:
-		config_test(obj["behavior"], 'behavior', dict)
-		if 'history' in obj["behavior"]:
-			config_test(obj["behavior"]["history"], 'behavior.history', dict)
-			if 'save_history' in obj["behavior"]["history"]:
-				if 'save_history' in obj["behavior"]["history"]: config_test(obj["behavior"]["history"]["save_history"], 'behavior.history.save_history', bool)
-				if 'save_previous' in obj["behavior"]["history"]: config_test(obj["behavior"]["history"]["save_previous"], 'behavior.history.save_previous', bool)
-				if 'auto_resume' in obj["behavior"]["history"]: config_test(obj["behavior"]["history"]["auto_resume"], 'behavior.history.auto_resume', bool)
-		if 'tagspace_defaults' in obj["behavior"]:
-			config_test(obj["behavior"]["tagspace_defaults"], 'behavior.tagspace_defaults', dict)
-			if 'tags' in obj["behavior"]["tagspace_defaults"]:
-				config_test(obj["behavior"]["tagspace_defaults"]["tags"], 'behavior.tagspace_defaults.tags', list)
-				for i in range(len(obj["behavior"]["tagspace_defaults"]["tags"])):
-					if not isinstance(obj["behavior"]["tagspace_defaults"]["tags"][i], list):
-						warn(f'Bad type in config.toml: for behavior.tagspace_defaults.tags[{i}] expected type list, '
-						     f'got {repr(obj["behavior"]["tagspace_defaults"]["tags"][i])} of type {type(obj["behavior"]["tagspace_defaults"]["tags"][i])}')
-					elif len(obj["behavior"]["tagspace_defaults"]["tags"][i]) != 2:
-						warn(f'Bad type in config.toml: for behavior.tagspace_defaults.tags[{i}] expected length 2, '
-						     f'got length {len(obj["behavior"]["tagspace_defaults"]["tags"][i])}')
-					else:
-						if not isinstance(obj["behavior"]["tagspace_defaults"]["tags"][i][0], str):
-							warn(f'Bad type in config.toml: for behavior.tagspace_defaults.tags[{i}][0] expected type str, '
-							     f'got {repr(obj["behavior"]["tagspace_defaults"]["tags"][i][0])} of type {type(obj["behavior"]["tagspace_defaults"]["tags"][i][0])}')
-						if not isinstance(obj["behavior"]["tagspace_defaults"]["tags"][i][1], str):
-							warn(f'Bad type in config.toml: for behavior.tagspace_defaults.tags[{i}][1] expected type str, '
-							     f'got {repr(obj["behavior"]["tagspace_defaults"]["tags"][i][1])} of type {type(obj["behavior"]["tagspace_defaults"]["tags"][i][1])}')
-						elif rlike('#[0-9a-fA-F]{6}', obj["behavior"]["tagspace_defaults"]["tags"][i][1]) is None:
-							warn(f'Bad type in config.toml: for behavior.tagspace_defaults.tags[{i}][1] expected hex color string, '
-							     f'got {repr(obj["behavior"]["tagspace_defaults"]["tags"][i][1])}')
-			if 'props' in obj["behavior"]["tagspace_defaults"]:
-				config_test(obj["behavior"]["tagspace_defaults"]["props"], 'behavior.tagspace_defaults.props', list)
-				for i in range(len(obj["behavior"]["tagspace_defaults"]["props"])):
-					if not isinstance(obj["behavior"]["tagspace_defaults"]["props"][i], list):
-						warn(f'Bad type in config.toml: for behavior.tagspace_defaults.props[{i}] expected type list, '
-						     f'got {repr(obj["behavior"]["tagspace_defaults"]["props"][i])} of type {type(obj["behavior"]["tagspace_defaults"]["props"][i])}')
-					elif len(obj["behavior"]["tagspace_defaults"]["props"][i]) != 2:
-						warn(f'Bad type in config.toml: for behavior.tagspace_defaults.props[{i}] expected length 2, '
-						     f'got length {len(obj["behavior"]["tagspace_defaults"]["props"][i])}')
-					else:
-						if not isinstance(obj["behavior"]["tagspace_defaults"]["props"][i][0], str):
-							warn(f'Bad type in config.toml: for behavior.tagspace_defaults.props[{i}][0] expected type str, '
-							     f'got {repr(obj["behavior"]["tagspace_defaults"]["props"][i][0])} of type {type(obj["behavior"]["tagspace_defaults"]["props"][i][0])}')
-						if not isinstance(obj["behavior"]["tagspace_defaults"]["props"][i][1], str):
-							warn(f'Bad type in config.toml: for behavior.tagspace_defaults.props[{i}][1] expected type str, '
-							     f'got {repr(obj["behavior"]["tagspace_defaults"]["props"][i][1])} of type {type(obj["behavior"]["tagspace_defaults"]["props"][i][1])}')
-						elif not (obj["behavior"]["tagspace_defaults"]["props"][i][1] == 'String'
-						          or obj["behavior"]["tagspace_defaults"]["props"][i][1] == 'Boolean'
-						          or obj["behavior"]["tagspace_defaults"]["props"][i][1] == 'Number'):
-							warn(f'Bad type in config.toml: for behavior.tagspace_defaults.props[{i}][1] expected valid type (Boolean, String, Number), '
-							     f'got {repr(obj["behavior"]["tagspace_defaults"]["props"][i][1])}')
-		if 'slideshow' in obj["behavior"]:
-			if 'interval' in obj["behavior"]["slideshow"]:
-				config_test(obj["behavior"]["slideshow"]["interval"], 'behavior.slideshow.interval', int)
-			if 'end_on_fullscreen_exit' in obj["behavior"]["slideshow"]:
-				config_test(obj["behavior"]["slideshow"]["end_on_fullscreen_exit"], 'behavior.slideshow.end_on_fullscreen_exit', bool)
-			if 'stop_at_end' in obj["behavior"]["slideshow"]:
-				config_test(obj["behavior"]["slideshow"]["stop_at_end"], 'behavior.slideshow.stop_at_end', bool)
-
-
 class MainWindow(Gtk.Window):
 	def __init__(self):
 		Gtk.Window.__init__(self, title=f"TagViewer {VERSION}")
@@ -154,8 +80,6 @@ class MainWindow(Gtk.Window):
 			self._cache = {}
 		with open(path.join(path.join(path.dirname(__file__), 'fullcache.json')), 'r') as cache_fallback:
 			self.cache = ChainMap(self._cache, json.load(cache_fallback))
-
-		check_config(self._config)
 
 		self.state = StateMan({
 			'tagviewer_meta': {},
