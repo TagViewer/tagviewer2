@@ -284,7 +284,13 @@ class MainWindow(Gtk.Window):
 
 		self.file_list.add(Gtk.Label(label="file list"))
 
-		self.content = Gtk.FlowBox()
+		self.file_list.set_selection_mode(Gtk.SelectionMode.BROWSE)
+
+		self.content = Gtk.Box()
+		self.content.set_hexpand(True)
+		self.content.set_vexpand(True)
+		self.content.set_halign(Gtk.Align.CENTER)
+		self.content.set_valign(Gtk.Align.CENTER)
 
 		self.content.add(Gtk.Label(label="content"))
 
