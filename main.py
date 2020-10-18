@@ -122,6 +122,10 @@ class MainWindow(Gtk.Window):
 		context = Gtk.StyleContext()
 		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
+		css_provider_2 = Gtk.CssProvider()
+		css_provider_2.load_from_data(self.config['ui']['injections'].encode())
+		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider_2, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
+
 		self.base = Gtk.Box()
 		self.base.set_orientation(Gtk.Orientation.VERTICAL)
 
