@@ -19,7 +19,7 @@ from stateman import StateMan
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 
-from gi.repository import Gdk, Gtk  # noqa: E402
+from gi.repository import Gdk, Gtk, GdkPixbuf  # noqa: E402
 
 VERSION = '2.0.0a'
 
@@ -223,6 +223,24 @@ class MainWindow(Gtk.Window):
 		def toggle_dark_mode():
 			self.state['dark_mode'] = not self.state['dark_mode']
 		self.top_bar_items['dark_mode_toggle_button'].connect('clicked', lambda widget: toggle_dark_mode())
+
+		self.about_dialog = Gtk.AboutDialog()
+		self.about_dialog.set_program_name('TagViewer 2')
+		self.about_dialog.set_version(VERSION)
+		self.about_dialog.set_copyright('Copyright (C) 2020  Matt Fellenz, under the GPL 3.0')
+		self.about_dialog.set_comments('A simple program that allows viewing of media within a TagSpace, and rich filtering of that media with tags and properties that are stored by the program.')
+		with open('LICENSE') as f:
+			self.about_dialog.set_license(''.join(f.readlines()))
+		self.about_dialog.set_website('https://github.com/tagviewer/tagviewer2')
+		self.about_dialog.set_authors(('Matt Fellenz',))
+		self.about_dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file('logos/universal/icon.png'))
+		self.about_dialog.connect('close', lambda *_: self.about_dialog.hide())
+		self.about_dialog.connect('response', lambda *_: self.about_dialog.hide())
+
+		def show_about_dialog(*_):
+			self.about_dialog.show()
+
+		self.top_bar_items['about_button'].connect('clicked', show_about_dialog)
 
 		self.base.pack_start(self.top_bar, False, False, 0)
 
