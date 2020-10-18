@@ -59,6 +59,34 @@ def debounce(wait):
 	return decorator
 
 
+class SettingsWindow(Gtk.Dialog):
+	def __init__(self, parent, conf):
+		Gtk.Dialog.__init__(self, 'Settings', parent, modal=True, destroy_with_parent=True)
+		self.add_button('OK', Gtk.ResponseType.ACCEPT)
+		self.conf = conf
+		self.base = self.get_child()
+
+		self.panel = Gtk.Stack()
+		self.panel.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+		self.panel.set_transition_duration(200)
+
+		self.ui_settings_panel = Gtk.ListBox()
+		self.ui_settings_panel.set_selection_mode(Gtk.SelectionMode.NONE)
+
+		self.behavior_settings_panel = Gtk.ListBox()
+		self.behavior_settings_panel.set_selection_mode(Gtk.SelectionMode.NONE)
+
+		self.panel.add_titled(self.ui_settings_panel, 'ui', 'UI')
+		self.panel.add_titled(self.behavior_settings_panel, 'behavior', 'Behavior')
+
+		self.panel_select = Gtk.StackSwitcher()
+		self.panel_select.set_stack(self.panel)
+
+		self.base.pack_start(self.panel_select, False, False, 0)
+		self.base.pack_end(self.panel, True, True, 0)
+		self.base.show_all()
+
+
 class MainWindow(Gtk.Window):
 	def __init__(self):
 		Gtk.Window.__init__(self, title=f"TagViewer {VERSION}")
@@ -238,6 +266,14 @@ class MainWindow(Gtk.Window):
 			self.about_dialog.show()
 
 		self.top_bar_items['about_button'].connect('clicked', show_about_dialog)
+
+		self.settings_dialog = SettingsWindow(self, self.config)
+
+		def show_settings_dialog(*_):
+			self.settings_dialog.run()
+			self.settings_dialog.hide()
+
+		self.top_bar_items['settings_button'].connect('clicked', show_settings_dialog)
 
 		self.base.pack_start(self.top_bar, False, False, 0)
 
