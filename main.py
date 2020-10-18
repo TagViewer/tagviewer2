@@ -1,6 +1,5 @@
 import json
 import os
-from collections import ChainMap
 from enum import Enum
 from enum import auto as enumauto
 from operator import itemgetter
@@ -68,18 +67,16 @@ class MainWindow(Gtk.Window):
 		if not path.exists(appdirs.user_config_dir('tagviewer')): os.mkdir(appdirs.user_config_dir('tagviewer'))
 		if not path.exists(appdirs.user_cache_dir('tagviewer')): os.mkdir(appdirs.user_cache_dir('tagviewer'))
 		if path.exists(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml')):
-			self._config = toml.load(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'))
+			self.config = toml.load(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'))
 		else:
-			self._config = {}
-		self.config = ChainMap(self._config, toml.load(path.join(path.dirname(__file__), 'fullconfig.toml')))
+			self.config = toml.load(path.join(path.dirname(__file__), 'fullconfig.toml'))
 
 		if path.exists(path.join(appdirs.user_cache_dir('tagviewer'), 'cache.json')):
 			with open(path.join(appdirs.user_cache_dir('tagviewer'), 'cache.json'), 'r') as cache_file:
-				self._cache = json.load(cache_file)
+				self.cache = json.load(cache_file)
 		else:
-			self._cache = {}
-		with open(path.join(path.join(path.dirname(__file__), 'fullcache.json')), 'r') as cache_fallback:
-			self.cache = ChainMap(self._cache, json.load(cache_fallback))
+			with open(path.join(path.join(path.dirname(__file__), 'fullcache.json')), 'r') as cache_fallback:
+				self.cache = json.load(cache_fallback)
 
 		self.state = StateMan({
 			'tagviewer_meta': {},
@@ -293,9 +290,9 @@ class MainWindow(Gtk.Window):
 
 	def exit_handler(self, *_):
 		with open(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'), 'w') as config_file:
-			toml.dump(self._config, config_file)
+			toml.dump(self.config, config_file)
 		with open(path.join(appdirs.user_cache_dir('tagviewer'), 'cache.json'), 'w') as cache_file:
-			json.dump(self._cache, cache_file)
+			json.dump(self.cache, cache_file)
 
 		Gtk.main_quit()
 
