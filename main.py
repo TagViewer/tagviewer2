@@ -135,7 +135,7 @@ class MainWindow(Gtk.Window):
 				model.refs['win'].top_bar_items['left_expander'].set_expand(model.refs['conf']['ui']['center_toolbar_items']['in_normal'])
 				pass  # TODO: disable autohide for widgets
 				if model['slideshow_active'] and model.refs['conf']['behavior']['slideshow']['end_on_fullscreen_exit']:
-					pass  # TODO: End slideshow
+					model['slideshow_active'] = False
 		self.state.bind('is_fullscreen', handle_fullscreen_change)
 
 		def handle_dark_mode_change(model, _):
