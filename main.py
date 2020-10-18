@@ -89,7 +89,7 @@ class MainWindow(Gtk.Window):
 			'filters': [],
 			'sort_options': None,
 			'is_fullscreen': False,
-			'dark_mode': False,
+			'dark_mode': self.config['ui']['dark'],
 			'slideshow_active': False,
 			'filters_active': (lambda model: len(model['filters']) > 0, ('filters',)),
 			'num_of_files': (lambda model: len(model['files'], ('files',))),
@@ -113,9 +113,13 @@ class MainWindow(Gtk.Window):
 					pass  # TODO: End slideshow
 		self.state.bind('is_fullscreen', handle_fullscreen_change)
 
-		self.state.bind('dark_mode', lambda model, _: model.refs['settings'].set_property('gtk-application-prefer-dark-theme', model['dark_mode']))
+		def handle_dark_mode_change(model, _):
+			model.refs['settings'].set_property('gtk-application-prefer-dark-theme', model['dark_mode'])
+			model.refs['conf']['ui']['dark'] = model['dark_mode']
 
-		self.state['dark_mode'] = self.config['ui']['dark']
+		self.state.bind('dark_mode', handle_dark_mode_change)
+
+		Gtk.Settings.get_default().set_property('gtk-application-prefer-dark-theme', self.config['ui']['dark'])
 
 		css_provider = Gtk.CssProvider()
 		css_provider.load_from_path('main.css')
