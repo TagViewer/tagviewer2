@@ -291,11 +291,10 @@ class MainWindow(Gtk.Window):
 
 		self.top_bar_items['about_button'].connect('clicked', show_about_dialog)
 
-		self.settings_dialog = SettingsWindow(self, self.config)
-
 		def show_settings_dialog(*_):
-			self.settings_dialog.run()
-			self.settings_dialog.hide()
+			settings_dialog = SettingsWindow(self, self.config, self.state)
+			settings_dialog.run()
+			settings_dialog.hide()
 
 		self.top_bar_items['settings_button'].connect('clicked', show_settings_dialog)
 
