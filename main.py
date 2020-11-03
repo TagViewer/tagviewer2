@@ -329,21 +329,26 @@ class MainWindow(Gtk.Window):
 		self.middle_pane_child.pack2(self.aside, resize=False, shrink=True)
 		self.middle_pane.pack2(self.middle_pane_child, resize=True, shrink=True)
 
-		self.middle_pane.set_position(self.cache['sidebar_widths'][0])
-		self.middle_pane_child.set_position(1000 - self.cache['sidebar_widths'][0] - self.cache['sidebar_widths'][1])
-
 		if self.config['ui']['save_sidebar_widths']:
-			@debounce(0.2)
-			def file_list_resize(middle_pane: Gtk.Paned, *_):
-				self.cache['sidebar_widths'][0] = middle_pane.get_position()
-				return True
-			self.middle_pane.connect('notify::position', file_list_resize)
+			self.middle_pane.set_position(self.cache['sidebar_widths'][0])
+			self.middle_pane_child.set_position(1000 - self.cache['sidebar_widths'][0] - self.cache['sidebar_widths'][1])
+		else:
+			self.middle_pane.set_position(200)
+			self.middle_pane_child.set_position(600)
 
-			@debounce(0.2)
-			def aside_resize(middle_pane_child: Gtk.Paned, *_):
+		@debounce(0.2)
+		def file_list_resize(middle_pane: Gtk.Paned, *_):
+			if self.config['ui']['save_sidebar_widths']:
+				self.cache['sidebar_widths'][0] = middle_pane.get_position()
+			return True
+		self.middle_pane.connect('notify::position', file_list_resize)
+
+		@debounce(0.2)
+		def aside_resize(middle_pane_child: Gtk.Paned, *_):
+			if self.config['ui']['save_sidebar_widths']:
 				self.cache['sidebar_widths'][1] = self.get_size()[0] - self.middle_pane.get_position() - middle_pane_child.get_position()
-				return True
-			self.middle_pane_child.connect('notify::position', aside_resize)
+			return True
+		self.middle_pane_child.connect('notify::position', aside_resize)
 
 		self.base.pack_start(self.middle_pane, True, True, 0)
 
