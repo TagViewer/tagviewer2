@@ -11,7 +11,6 @@ from shutil import copyfile
 import sys
 from threading import Timer
 from typing import Callable, Optional
-from warnings import warn
 
 import appdirs
 import gi
