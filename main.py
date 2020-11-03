@@ -5,6 +5,7 @@ from enum import auto as enumauto
 from operator import itemgetter
 from os import path
 from re import match as rlike
+import sys
 from threading import Timer
 from typing import Callable, Optional
 from warnings import warn
@@ -349,6 +350,12 @@ class MainWindow(Gtk.Window):
 
 		Gtk.main_quit()
 
+
+def graphical_except_hook(exctype, value, traceback):
+	msg = Gtk.MessageDialog(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, text=f'{exctype.__name__}: {str(value)}')
+	msg.run()
+	msg.hide()
+sys.excepthook = graphical_except_hook
 
 win = MainWindow()
 win.connect("destroy", win.exit_handler)
