@@ -105,6 +105,14 @@ class MainWindow(Gtk.Window):
 		else:
 			with open(path.join(path.join(path.dirname(__file__), 'fullcache.json')), 'r') as cache_fallback:
 				self.cache = json.load(cache_fallback)
+		css_provider = Gtk.CssProvider()
+		css_provider.load_from_path('main.css')
+		context = Gtk.StyleContext()
+		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+		css_provider_2 = Gtk.CssProvider()
+		css_provider_2.load_from_data(self.config['ui']['injections'].encode())
+		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider_2, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
 
 		self.state = StateMan({
 			'tagviewer_meta': {},
@@ -115,13 +123,14 @@ class MainWindow(Gtk.Window):
 			'sort_options': None,
 			'is_fullscreen': False,
 			'dark_mode': self.config['ui']['dark'],
+			'injections': self.config['ui']['injections'],
 			'slideshow_active': False,
 			'filters_active': (lambda model: len(model['filters']) > 0, ('filters',)),
 			'num_of_files': (lambda model: len(model['files'], ('files',))),
 			'file_paths': (lambda model: map(itemgetter('_path'), model['files']), ('files',)),
 			'tagspace_is_open': (lambda model: model['open_directory'] is not None, ('open_directory')),
 			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in files else {}, ('media_number',))  # deps doesn't include `files` intentionally!
-		}, refs={'win': self, 'conf': self.config, 'cache': self.cache, 'settings': Gtk.Settings.get_default()})
+		}, refs={'win': self, 'conf': self.config, 'cache': self.cache, 'settings': Gtk.Settings.get_default(), 'injections_provider': css_provider_2})
 
 		def handle_fullscreen_change(model, _):
 			if model['is_fullscreen']:
@@ -144,16 +153,18 @@ class MainWindow(Gtk.Window):
 
 		self.state.bind('dark_mode', handle_dark_mode_change)
 
-		Gtk.Settings.get_default().set_property('gtk-application-prefer-dark-theme', self.config['ui']['dark'])
+		def handle_injections_change(model, _):
+			model.refs['injections_provider'].load_from_data(model['injections'].encode())
+			model.refs['conf']['ui']['injections'] = model['injections']
+
+		self.state.bind('injections', handle_injections_change)
 
 		css_provider = Gtk.CssProvider()
 		css_provider.load_from_path('main.css')
 		context = Gtk.StyleContext()
 		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-		css_provider_2 = Gtk.CssProvider()
-		css_provider_2.load_from_data(self.config['ui']['injections'].encode())
-		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider_2, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
+		Gtk.Settings.get_default().set_property('gtk-application-prefer-dark-theme', self.config['ui']['dark'])
 
 		self.base = Gtk.Box()
 		self.base.set_orientation(Gtk.Orientation.VERTICAL)
