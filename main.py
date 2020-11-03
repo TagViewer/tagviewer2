@@ -76,30 +76,122 @@ def debounce(wait):
 
 
 class SettingsWindow(Gtk.Dialog):
-	def __init__(self, parent, conf):
+	def __init__(self, parent, conf, state):
 		Gtk.Dialog.__init__(self, 'Settings', parent, modal=True, destroy_with_parent=True)
+		self.set_name('settingsDialog')
+		self.set_default_size(700, 500)
 		self.add_button('OK', Gtk.ResponseType.ACCEPT)
 		self.conf = conf
+		self.state = state
 		self.base = self.get_child()
 
-		self.panel = Gtk.Stack()
-		self.panel.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-		self.panel.set_transition_duration(200)
+		self.main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
-		self.ui_settings_panel = Gtk.ListBox()
-		self.ui_settings_panel.set_selection_mode(Gtk.SelectionMode.NONE)
+		self.model = Gtk.TreeStore(str)
+		ui_parent = self.model.append(None, ['UI'])
+		self.model.append(ui_parent, ['Center Toolbar Items'])
+		behavior_parent = self.model.append(None, ['Behavior'])
+		self.model.append(behavior_parent, ['History'])
+		self.model.append(behavior_parent, ['TagSpace Defaults'])
+		self.model.append(behavior_parent, ['Slideshow'])
 
-		self.behavior_settings_panel = Gtk.ListBox()
-		self.behavior_settings_panel.set_selection_mode(Gtk.SelectionMode.NONE)
+		self.tree = Gtk.TreeView(model=self.model)
+		self.tree.append_column(Gtk.TreeViewColumn('Name', Gtk.CellRendererText(), text=0))
+		self.tree.set_headers_visible(False)
+		self.tree.set_enable_search(True)
+		self.tree.set_enable_tree_lines(False)
 
-		self.panel.add_titled(self.ui_settings_panel, 'ui', 'UI')
-		self.panel.add_titled(self.behavior_settings_panel, 'behavior', 'Behavior')
+		self.tree.expand_row(self.model.get_path(ui_parent), False)
+		self.tree.expand_row(self.model.get_path(behavior_parent), False)
 
-		self.panel_select = Gtk.StackSwitcher()
-		self.panel_select.set_stack(self.panel)
+		self.main.pack_start(self.tree, False, False, 0)
 
-		self.base.pack_start(self.panel_select, False, False, 0)
-		self.base.pack_end(self.panel, True, True, 0)
+		def generate_settings_panel(settings):
+			container = Gtk.Grid()
+			for i, setting in enumerate(settings):
+				# setting: (name label, type of input, extra info for type if necessary,
+				# value, setter fn, help text?)
+				label = Gtk.Label(label=setting[0])
+				label.set_halign(Gtk.Align.END)
+				if setting[5] is not None:
+					label.set_tooltip_text(setting[5])
+				container.attach(label, 0, i, 1, 1)
+				if setting[1] == 'entry':
+					control = Gtk.Entry()
+					control.set_text(setting[3])
+					control.connect('changed', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_text()))
+				elif setting[1] == 'combo':
+					store = Gtk.ListStore(str)
+					for val in setting[2]: store.append([val])
+					control = Gtk.ComboBox.new_with_model(store)
+					control.set_active(setting[2].index(setting[3]))
+					control.connect('changed', lambda self, *_, callbackfn=setting[4]: callbackfn(store[self.get_active()][0]))
+				elif setting[1] == 'switch':
+					control = Gtk.Switch()
+					control.set_active(setting[3])
+					control.connect('state-set', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_active()))
+				elif setting[1] == 'checkbox':
+					control = Gtk.CheckButton()
+					control.set_active(setting[3])
+					control.connect('state-set', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_state()))
+				elif setting[1] == 'int':
+					control = Gtk.SpinButton(adjustment=Gtk.Adjustment(value=setting[3], lower=setting[2][0], upper=setting[2][1], step_incr=setting[2][2]))
+					control.connect('value-changed', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_value()))
+				container.attach(control, 1, i, 1, 1)
+			return container
+		def set_dark_mode(val):
+			self.state['dark_mode'] = val
+		def set_injections(val):
+			self.state['injections'] = val
+		def set_save_sidebar_widths(val):
+			self.conf['ui']['save_sidebar_widths'] = val
+			if val:  # force event handlers to be fired so that the previously ignored resizes are saved as the user would expect.
+				# TODO: This is really hacky, but it works!
+				parent.middle_pane.set_position(parent.middle_pane.get_position() + 1)
+				parent.middle_pane.set_position(parent.middle_pane.get_position() - 1)
+				parent.middle_pane_child.set_position(parent.middle_pane_child.get_position() + 1)
+				parent.middle_pane_child.set_position(parent.middle_pane_child.get_position() - 1)
+
+		ui_box = generate_settings_panel((
+			('Dark Mode', 'switch', None, self.state['dark_mode'], set_dark_mode, None),
+			('CSS Injections', 'entry', None, self.state['injections'], set_injections,
+				'Any extra CSS styles to be added to the stylesheet. If you don\'t know what this is, you can safely ignore it.'),
+			('Save Sidebar Widths', 'switch', None, self.conf['ui']['save_sidebar_widths'], set_save_sidebar_widths,
+				'Whether to save the widths of the sidebars in the main window between restarts'),
+		))
+
+		self.stack_pages = {
+			'UI': ui_box,
+			'Center Toolbar Items': Gtk.Box(),
+			'Behavior': Gtk.Box(),
+			'History': Gtk.Box(),
+			'TagSpace Defaults': Gtk.Box(),
+			'Slideshow': Gtk.Box()
+		}
+
+		self.content_stack = Gtk.Stack()
+
+		for page in self.stack_pages:
+			self.content_stack.add(self.stack_pages[page])
+
+		def handle_cursor_changed(*_):
+			selection = self.tree.get_selection().get_selected()
+			self.content_stack.set_visible_child(self.stack_pages[selection[0].get_value(selection[1], 0)])
+		self.tree.connect('cursor-changed', handle_cursor_changed)
+
+		self.main.pack_end(self.content_stack, True, True, 0)
+
+		self.base.pack_start(self.main, True, True, 0)
+
+		self.open_toml = Gtk.Button(label='Open Config File')
+		def open_config_handler(*_):
+			conf_path = path.join(appdirs.user_config_dir('tagviewer'), 'config.toml')
+			open_file(conf_path)
+		self.open_toml.connect('clicked', open_config_handler)
+		button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+		button_box.pack_start(self.open_toml, True, False, 0)
+		self.base.pack_start(button_box, False, False, 5)
+
 		self.base.show_all()
 
 
