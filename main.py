@@ -137,7 +137,12 @@ class MainWindow(Gtk.Window):
 			'num_of_files': (lambda model: len(model['files'], ('files',))),
 			'file_paths': (lambda model: map(itemgetter('_path'), model['files']), ('files',)),
 			'tagspace_is_open': (lambda model: model['open_directory'] is not None, ('open_directory')),
-			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in files else {}, ('media_number',))  # deps doesn't include `files` intentionally!
+			'media_is_open': (lambda model: model['tagspace_is_open'] and ('_path' in model['current_item'] or model['filters_active'] or len(model['files']) == 0), ('tagspace_is_open', 'current_item', 'filters_active', 'files')),
+			'can_go_previous': (lambda model: model['media_number'] > 1, ('media_number',)),
+			'can_go_next': (lambda model: len(model['files']) > 0 and len(model['files']) > model['media_number'], ('files', 'media_number')),
+			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in files else {}, ('media_number',)),  # deps doesn't include `files` intentionally!
+			'current_path': (lambda model: model['current_item']['_path'] if model['media_is_open'] else None, ('current_item', 'media_is_open')),
+			'current_tags': (lambda model: list(map(lambda x: model['tagviewer_meta']['tagList'][x], model['current_item']['tags'])) if 'tagList' in model['tagviewer_meta'] else [], ('current_item', 'tagviewer_meta'))
 		}, refs={'win': self, 'conf': self.config, 'cache': self.cache, 'settings': Gtk.Settings.get_default(), 'injections_provider': css_provider_2})
 
 		def handle_fullscreen_change(model, _):
