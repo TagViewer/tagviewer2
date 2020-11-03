@@ -1,10 +1,12 @@
 import json
 import os
+import subprocess
 from enum import Enum
 from enum import auto as enumauto
 from operator import itemgetter
 from os import path
 from re import match as rlike
+import platform
 from shutil import copyfile
 import sys
 from threading import Timer
@@ -39,6 +41,19 @@ class SortMethods(Enum):
 	SORT_91 = enumauto()
 	SORT_TF = enumauto()
 	SORT_FT = enumauto()
+
+
+def open_file(filename: str):
+	'''Open file with default application.'''
+	useros = platform.system()
+	if useros == 'Windows':
+		os.startfile(filename)
+	elif useros == 'Darwin':
+		subprocess.Popen(['open', filename])
+	elif useros == 'Linux':
+		subprocess.Popen(['xdg-open', filename])
+	else:
+		raise OSError(f"No suitable file opening utility was found for your operating system. Please open the file manually; the path is “{filename}”.")
 
 
 def debounce(wait):
