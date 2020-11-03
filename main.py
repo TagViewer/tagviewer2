@@ -5,6 +5,7 @@ from enum import auto as enumauto
 from operator import itemgetter
 from os import path
 from re import match as rlike
+from shutil import copyfile
 import sys
 from threading import Timer
 from typing import Callable, Optional
@@ -95,17 +96,9 @@ class MainWindow(Gtk.Window):
 
 		if not path.exists(appdirs.user_config_dir('tagviewer')): os.mkdir(appdirs.user_config_dir('tagviewer'))
 		if not path.exists(appdirs.user_cache_dir('tagviewer')): os.mkdir(appdirs.user_cache_dir('tagviewer'))
-		if path.exists(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml')):
-			self.config = toml.load(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'))
-		else:
-			self.config = toml.load(path.join(path.dirname(__file__), 'fullconfig.toml'))
+		self.load_config()
+		self.load_cache()
 
-		if path.exists(path.join(appdirs.user_cache_dir('tagviewer'), 'cache.json')):
-			with open(path.join(appdirs.user_cache_dir('tagviewer'), 'cache.json'), 'r') as cache_file:
-				self.cache = json.load(cache_file)
-		else:
-			with open(path.join(path.join(path.dirname(__file__), 'fullcache.json')), 'r') as cache_fallback:
-				self.cache = json.load(cache_fallback)
 		css_provider = Gtk.CssProvider()
 		css_provider.load_from_path('main.css')
 		context = Gtk.StyleContext()
@@ -341,6 +334,21 @@ class MainWindow(Gtk.Window):
 		self.base.pack_start(self.status_bar, False, False, 0)
 
 		self.add(self.base)
+
+	def load_config(self):
+		if path.exists(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml')):
+			self.config = toml.load(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'))
+		else:
+			self.config = toml.load(path.join(path.dirname(__file__), 'fullconfig.toml'))
+			copyfile(path.join(path.dirname(__file__), 'fullconfig.toml'), path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'))
+
+	def load_cache(self):
+		if path.exists(path.join(appdirs.user_cache_dir('tagviewer'), 'cache.json')):
+			with open(path.join(appdirs.user_cache_dir('tagviewer'), 'cache.json'), 'r') as cache_file:
+				self.cache = json.load(cache_file)
+		else:
+			with open(path.join(path.join(path.dirname(__file__), 'fullcache.json')), 'r') as cache_fallback:
+				self.cache = json.load(cache_fallback)
 
 	def exit_handler(self, *_):
 		with open(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'), 'w') as config_file:
