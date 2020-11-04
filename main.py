@@ -171,10 +171,31 @@ class SettingsWindow(Gtk.Dialog):
 				'Whether to save the widths of the sidebars in the main window between restarts'),
 		)
 
+		def set_normal_centering(val):
+			self.conf['ui']['center_toolbar_items']['in_normal'] = val
+			parent.update_toolbar_centering()
+		def set_fullscreen_centering(val):
+			self.conf['ui']['center_toolbar_items']['in_fullscreen'] = val
+			parent.update_toolbar_centering()
+
+		center_toolbar_items_box = generate_settings_panel('Whether to Center Toolbar Items',
+			('In Normal Mode', 'checkbox', None, self.conf['ui']['center_toolbar_items']['in_normal'], set_normal_centering, None),
+			('In Fullscreen', 'checkbox', None, self.conf['ui']['center_toolbar_items']['in_fullscreen'], set_fullscreen_centering, None),
+		)
+
+		def set_media_persistence(val):
+			self.conf['behavior']['persist_media_on_sort_change'] = val
+
+		behavior_box = generate_settings_panel('General Behavior Settings',
+			('Persist Media on Sort Change', 'switch', None, self.conf['behavior']['persist_media_on_sort_change'], set_media_persistence,
+				'If true, change the media index to keep the shown media the same when the sort method is changed. If false, keep the index \
+the same, changing the media'),
+		)
+
 		self.stack_pages = {
 			'UI': ui_box,
-			'Center Toolbar Items': Gtk.Box(),
-			'Behavior': Gtk.Box(),
+			'Center Toolbar Items': center_toolbar_items_box,
+			'Behavior': behavior_box,
 			'History': Gtk.Box(),
 			'TagSpace Defaults': Gtk.Box(),
 			'Slideshow': Gtk.Box()
