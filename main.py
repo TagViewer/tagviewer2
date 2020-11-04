@@ -229,22 +229,29 @@ class MainWindow(Gtk.Window):
 			'num_of_files': (lambda model: len(model['files'], ('files',))),
 			'file_paths': (lambda model: map(itemgetter('_path'), model['files']), ('files',)),
 			'tagspace_is_open': (lambda model: model['open_directory'] is not None, ('open_directory')),
-			'media_is_open': (lambda model: model['tagspace_is_open'] and ('_path' in model['current_item'] or model['filters_active'] or len(model['files']) == 0), ('tagspace_is_open', 'current_item', 'filters_active', 'files')),
+			'media_is_open': (lambda model: model['tagspace_is_open'] and ('_path' in model['current_item']
+			                  or model['filters_active'] or len(model['files']) == 0),
+			                  ('tagspace_is_open', 'current_item', 'filters_active', 'files')),
 			'can_go_previous': (lambda model: model['media_number'] > 1, ('media_number',)),
 			'can_go_next': (lambda model: len(model['files']) > 0 and len(model['files']) > model['media_number'], ('files', 'media_number')),
-			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in files else {}, ('media_number',)),  # deps doesn't include `files` intentionally!
+			# ↓ deps doesn't include `files` intentionally!
+			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in files else {}, ('media_number',)),
 			'current_path': (lambda model: model['current_item']['_path'] if model['media_is_open'] else None, ('current_item', 'media_is_open')),
-			'current_tags': (lambda model: list(map(lambda x: model['tagviewer_meta']['tagList'][x], model['current_item']['tags'])) if 'tagList' in model['tagviewer_meta'] else [], ('current_item', 'tagviewer_meta'))
+			'current_tags': (lambda model: list(map(lambda x: model['tagviewer_meta']['tagList'][x], model['current_item']['tags']))
+			                 if 'tagList' in model['tagviewer_meta'] else [],
+			                 ('current_item', 'tagviewer_meta'))
 		}, refs={'win': self, 'conf': self.config, 'cache': self.cache, 'settings': Gtk.Settings.get_default(), 'injections_provider': css_provider_2})
 
 		def handle_fullscreen_change(model, _):
 			if model['is_fullscreen']:
-				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen_exit.svg')
+				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget()\
+				    .set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen_exit.svg')
 				model.refs['win'].fullscreen()
 				model.refs['win'].top_bar_items['left_expander'].set_expand(model.refs['conf']['ui']['center_toolbar_items']['in_fullscreen'])
 				pass  # TODO: enable autohide for widgets
 			else:
-				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget().set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen.svg')
+				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget()\
+				    .set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen.svg')
 				model.refs['win'].unfullscreen()
 				model.refs['win'].top_bar_items['left_expander'].set_expand(model.refs['conf']['ui']['center_toolbar_items']['in_normal'])
 				pass  # TODO: disable autohide for widgets
@@ -355,9 +362,12 @@ class MainWindow(Gtk.Window):
 			for btn in filter(lambda item: item.endswith('button'), top_bar_items):
 				item = top_bar_items[btn]
 				if btn == 'fullscreen_toggle_button':
-					item.get_icon_widget().set_from_file(f'icons/{"dark" if model["dark_mode"] else "light"}/{"fullscreen_exit" if model["is_fullscreen"] else "fullscreen"}.svg')
+					item.get_icon_widget().set_from_file(f'icons/\
+{"dark" if model["dark_mode"] else "light"}/\
+{"fullscreen_exit" if model["is_fullscreen"] else "fullscreen"}.svg')
 				else:
-					item.get_icon_widget().set_from_file(f'icons/{"dark" if model["dark_mode"] else "light"}/{item.icon_name}.svg')
+					item.get_icon_widget().set_from_file(f'icons/\
+{"dark" if model["dark_mode"] else "light"}/{item.icon_name}.svg')
 		self.state.bind('dark_mode', invert_icon_colors)
 
 		def toggle_fullscreen():
@@ -372,7 +382,8 @@ class MainWindow(Gtk.Window):
 		self.about_dialog.set_program_name('TagViewer 2')
 		self.about_dialog.set_version(VERSION)
 		self.about_dialog.set_copyright('Copyright (C) 2020  Matt Fellenz, under the GPL 3.0')
-		self.about_dialog.set_comments('A simple program that allows viewing of media within a TagSpace, and rich filtering of that media with tags and properties that are stored by the program.')
+		self.about_dialog.set_comments('A simple program that allows viewing of media within a TagSpace, \
+and rich filtering of that media with tags and properties that are stored by the program.')
 		with open('LICENSE') as f:
 			self.about_dialog.set_license(''.join(f.readlines()))
 		self.about_dialog.set_website('https://github.com/tagviewer/tagviewer2')
