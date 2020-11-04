@@ -138,7 +138,7 @@ class SettingsWindow(Gtk.Dialog):
 				elif setting[1] == 'checkbox':
 					control = Gtk.CheckButton()
 					control.set_active(setting[3])
-					control.connect('state-set', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_state()))
+					control.connect('toggled', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_active()))
 				elif setting[1] == 'int':
 					control = Gtk.SpinButton(adjustment=Gtk.Adjustment(value=setting[3], lower=setting[2][0], upper=setting[2][1], step_incr=setting[2][2]))
 					control.connect('value-changed', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_value()))
