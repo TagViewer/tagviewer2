@@ -111,7 +111,7 @@ class SettingsWindow(Gtk.Dialog):
 
 		self.main.pack_start(self.tree, False, False, 0)
 
-		def generate_settings_panel(settings):
+		def generate_settings_panel(*settings):
 			container = Gtk.Grid()
 			for i, setting in enumerate(settings):
 				# setting: (name label, type of input, extra info for type if necessary,
@@ -157,13 +157,13 @@ class SettingsWindow(Gtk.Dialog):
 				parent.middle_pane_child.set_position(parent.middle_pane_child.get_position() + 1)
 				parent.middle_pane_child.set_position(parent.middle_pane_child.get_position() - 1)
 
-		ui_box = generate_settings_panel((
+		ui_box = generate_settings_panel(
 			('Dark Mode', 'switch', None, self.state['dark_mode'], set_dark_mode, None),
 			('CSS Injections', 'entry', None, self.state['injections'], set_injections,
 				'Any extra CSS styles to be added to the stylesheet. If you don\'t know what this is, you can safely ignore it.'),
 			('Save Sidebar Widths', 'switch', None, self.conf['ui']['save_sidebar_widths'], set_save_sidebar_widths,
 				'Whether to save the widths of the sidebars in the main window between restarts'),
-		))
+		)
 
 		self.stack_pages = {
 			'UI': ui_box,
