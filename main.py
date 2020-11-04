@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import traceback
 from enum import Enum
 from enum import auto as enumauto
 from operator import itemgetter
@@ -504,10 +505,17 @@ and rich filtering of that media with tags and properties that are stored by the
 		Gtk.main_quit()
 
 
-def graphical_except_hook(exctype, value, traceback):
-	msg = Gtk.MessageDialog(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, text=f'{exctype.__name__}: {str(value)}')
-	msg.run()
-	msg.hide()
+def graphical_except_hook(exctype, value, tb):
+	if exctype != KeyboardInterrupt:
+		msg = Gtk.MessageDialog(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, text='An error was encountered and TagViewer will now exit.')
+		msg.format_secondary_text(f'The error is as follows:\n\n    {exctype.__name__}: {str(value)}\n\nThe full exception was printed to STDERR.')
+		msg.run()
+		msg.hide()
+		traceback.print_exception(exctype, value, tb)
+	try:
+		win.exit_handler()
+	except NameError:
+		pass
 sys.excepthook = graphical_except_hook
 
 win = MainWindow()
