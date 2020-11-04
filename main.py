@@ -522,6 +522,7 @@ def graphical_except_hook(exctype, value, tb):
 		win.exit_handler()
 	except NameError:
 		pass
+	exit(1)
 sys.excepthook = graphical_except_hook
 
 win = MainWindow()
