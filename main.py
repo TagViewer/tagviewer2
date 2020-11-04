@@ -26,6 +26,10 @@ from gi.repository import Gdk, Gtk, GdkPixbuf, GLib  # noqa: E402
 VERSION = '2.0.0a'
 
 
+class ConfigError(Exception):
+	pass
+
+
 class BuiltinSortProps(Enum):
 	INTRINSIC = enumauto()
 	TITLE = enumauto()
@@ -211,7 +215,19 @@ class MainWindow(Gtk.Window):
 		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 		css_provider_2 = Gtk.CssProvider()
-		css_provider_2.load_from_data(self.config['ui']['injections'].encode())
+		try:
+			css_provider_2.load_from_data(self.config['ui']['injections'].encode())
+		except GLib.Error as e:
+			if e.domain == 'gtk-css-provider-error-quark':  # Error parsing injections
+				msg = Gtk.MessageDialog(message_type=Gtk.MessageType.ERROR, text="The CSS injections could not be parsed.", buttons=Gtk.ButtonsType.OK_CANCEL)
+				msg.format_secondary_text("If you choose OK, the injections will not be applied. \
+Alternatively, you can exit to edit the injections by selecting Cancel.")
+				response = msg.run()
+				msg.hide()
+				if response == Gtk.ResponseType.CANCEL:
+					exit(0)
+			else:
+				raise  # other `GLib.Error`s should be treated normally
 		context.add_provider_for_screen(Gdk.Screen.get_default(), css_provider_2, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
 
 		self.state = StateMan({
