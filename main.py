@@ -118,8 +118,6 @@ class SettingsWindow(Gtk.Dialog):
 				# value, setter fn, help text?)
 				label = Gtk.Label(label=setting[0])
 				label.set_halign(Gtk.Align.END)
-				if setting[5] is not None:
-					label.set_tooltip_text(setting[5])
 				container.attach(label, 0, i, 1, 1)
 				if setting[1] == 'entry':
 					control = Gtk.Entry()
@@ -143,6 +141,10 @@ class SettingsWindow(Gtk.Dialog):
 					control = Gtk.SpinButton(adjustment=Gtk.Adjustment(value=setting[3], lower=setting[2][0], upper=setting[2][1], step_incr=setting[2][2]))
 					control.connect('value-changed', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_value()))
 				container.attach(control, 1, i, 1, 1)
+				if setting[5] is not None:
+					help_tooltip = Gtk.Image.new_from_icon_name('help-faq', Gtk.IconSize.SMALL_TOOLBAR)
+					help_tooltip.set_tooltip_text(setting[5])
+					container.attach(help_tooltip, 2, i, 1, 1)
 			return container
 		def set_dark_mode(val):
 			self.state['dark_mode'] = val
