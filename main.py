@@ -112,9 +112,12 @@ class SettingsWindow(Gtk.Dialog):
 
 		self.main.pack_start(self.tree, False, False, 0)
 
-		def generate_settings_panel(*settings):
+		def generate_settings_panel(panel_name, *settings):
 			container = Gtk.Grid()
-			for i, setting in enumerate(settings):
+			panel_label = Gtk.Label(label=panel_name)
+			panel_label.set_halign(Gtk.Align.START)
+			container.attach(panel_label, 0, 0, 3, 1)
+			for i, setting in enumerate(settings, start=1):
 				# setting: (name label, type of input, extra info for type if necessary,
 				# value, setter fn, help text?)
 				label = Gtk.Label(label=setting[0])
@@ -160,7 +163,7 @@ class SettingsWindow(Gtk.Dialog):
 				parent.middle_pane_child.set_position(parent.middle_pane_child.get_position() + 1)
 				parent.middle_pane_child.set_position(parent.middle_pane_child.get_position() - 1)
 
-		ui_box = generate_settings_panel(
+		ui_box = generate_settings_panel('General UI Settings',
 			('Dark Mode', 'switch', None, self.state['dark_mode'], set_dark_mode, None),
 			('CSS Injections', 'entry', None, self.state['injections'], set_injections,
 				'Any extra CSS styles to be added to the stylesheet. If you don\'t know what this is, you can safely ignore it.'),
