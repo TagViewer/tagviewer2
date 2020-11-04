@@ -270,13 +270,13 @@ Alternatively, you can exit to edit the injections by selecting Cancel.")
 				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget()\
 				    .set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen_exit.svg')
 				model.refs['win'].fullscreen()
-				model.refs['win'].top_bar_items['left_expander'].set_expand(model.refs['conf']['ui']['center_toolbar_items']['in_fullscreen'])
+				model.refs['win'].update_toolbar_centering()
 				pass  # TODO: enable autohide for widgets
 			else:
 				model.refs['win'].top_bar_items['fullscreen_toggle_button'].get_icon_widget()\
 				    .set_from_file(f'icons/{("dark" if model["dark_mode"] else "light")}/fullscreen.svg')
 				model.refs['win'].unfullscreen()
-				model.refs['win'].top_bar_items['left_expander'].set_expand(model.refs['conf']['ui']['center_toolbar_items']['in_normal'])
+				model.refs['win'].update_toolbar_centering()
 				pass  # TODO: disable autohide for widgets
 				if model['slideshow_active'] and model.refs['conf']['behavior']['slideshow']['end_on_fullscreen_exit']:
 					model['slideshow_active'] = False
@@ -501,6 +501,11 @@ and rich filtering of that media with tags and properties that are stored by the
 		else:
 			with open(path.join(path.join(path.dirname(__file__), 'fullcache.json')), 'r') as cache_fallback:
 				self.cache = json.load(cache_fallback)
+
+	def update_toolbar_centering(self):
+		self.top_bar_items['left_expander'].set_expand(
+			self.config['ui']['center_toolbar_items']['in_fullscreen' if self.state['is_fullscreen'] else 'in_normal']
+		)
 
 	def exit_handler(self, *_):
 		with open(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'), 'w') as config_file:
