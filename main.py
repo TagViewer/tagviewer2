@@ -21,7 +21,7 @@ from stateman import StateMan
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 
-from gi.repository import Gdk, Gtk, GdkPixbuf  # noqa: E402
+from gi.repository import Gdk, Gtk, GdkPixbuf, GLib  # noqa: E402
 
 VERSION = '2.0.0a'
 
@@ -259,7 +259,10 @@ class MainWindow(Gtk.Window):
 		self.state.bind('dark_mode', handle_dark_mode_change)
 
 		def handle_injections_change(model, _):
-			model.refs['injections_provider'].load_from_data(model['injections'].encode())
+			try:
+				model.refs['injections_provider'].load_from_data(model['injections'].encode())
+			except GLib.Error:
+				pass  # the injections CSS is invalid. Fail silently.
 			model.refs['conf']['ui']['injections'] = model['injections']
 
 		self.state.bind('injections', handle_injections_change)
