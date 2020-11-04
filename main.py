@@ -91,6 +91,7 @@ class SettingsWindow(Gtk.Dialog):
 		self.base = self.get_child()
 
 		self.main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+		self.main.set_name('main')
 
 		self.model = Gtk.TreeStore(str)
 		ui_parent = self.model.append(None, ['UI'])

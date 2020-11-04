@@ -11,8 +11,17 @@ toolbar separator.invisible {
   margin-right: 0;
 }
 
-#settingsDialog {
+#settingsDialog #main {
   treeview, stack {
     margin: 5px;
-	}
+  }
+  treeview {
+    padding: 1px 5px;
+  }
+  grid > label:first-child {
+    margin-bottom: 1.5ex;
+  }
+  grid > * {
+    margin: 3px 5px;
+  }
 }
