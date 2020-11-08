@@ -18,7 +18,7 @@ tags = [
     ["Important", "#fd9644"]
 ]
 props = [
-    ["Description", "String"]
+    ["Description", "Text"]
 ]
 [behavior.slideshow]
 interval = 2000 # milliseconds per item in the slideshow

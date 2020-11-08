@@ -6,7 +6,6 @@ from enum import Enum
 from enum import auto as enumauto
 from operator import itemgetter
 from os import path
-from re import match as rlike
 import platform
 from shutil import copyfile
 import sys
@@ -98,7 +97,9 @@ class SettingsWindow(Gtk.Dialog):
 		self.model.append(ui_parent, ['Center Toolbar Items'])
 		behavior_parent = self.model.append(None, ['Behavior'])
 		self.model.append(behavior_parent, ['History'])
-		self.model.append(behavior_parent, ['TagSpace Defaults'])
+		tagspace_defaults_parent = self.model.append(behavior_parent, ['TagSpace Defaults'])
+		self.model.append(tagspace_defaults_parent, ['Tags'])
+		self.model.append(tagspace_defaults_parent, ['Props'])
 		self.model.append(behavior_parent, ['Slideshow'])
 
 		self.tree = Gtk.TreeView(model=self.model)
@@ -107,8 +108,7 @@ class SettingsWindow(Gtk.Dialog):
 		self.tree.set_enable_search(True)
 		self.tree.set_enable_tree_lines(False)
 
-		self.tree.expand_row(self.model.get_path(ui_parent), False)
-		self.tree.expand_row(self.model.get_path(behavior_parent), False)
+		self.tree.expand_all()
 
 		self.main.pack_start(self.tree, False, False, 0)
 
@@ -204,12 +204,47 @@ Opened menu? Disabling this setting will stop the saving of these entries and wi
 saved, should it be opened automatically?'),
 		)
 
+		default_tags_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		panel_label = Gtk.Label(label='Default Tags')
+		panel_label.set_halign(Gtk.Align.START)
+		default_tags_box.add(panel_label)
+
+		tags_model = Gtk.ListStore(str, str)
+		for row in self.conf['behavior']['tagspace_defaults']['tags']: tags_model.append(row)
+		tags_view = Gtk.TreeView(model=tags_model)
+		tags_view.append_column(Gtk.TreeViewColumn(title='Name', cell_renderer=Gtk.CellRendererText(editable=True), text=0))
+		color_renderer = Gtk.CellRendererText(editable=True)  # TODO: make this be a ColorButton
+		tags_view.append_column(Gtk.TreeViewColumn(title='Color', cell_renderer=color_renderer, text=1))
+		default_tags_box.add(tags_view)
+
+		default_props_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		panel_label = Gtk.Label(label='Default Props')
+		panel_label.set_halign(Gtk.Align.START)
+		default_props_box.add(panel_label)
+
+		prop_types_list = Gtk.ListStore(str)
+		for prop_type in ['Text', 'True/False', 'Number']:
+			prop_types_list.append([prop_type])
+		props_model = Gtk.ListStore(str, str)  # int represents an enum of the possible types
+		for row in self.conf['behavior']['tagspace_defaults']['props']: props_model.append(row)
+		props_view = Gtk.TreeView(model=props_model)
+		props_view.append_column(Gtk.TreeViewColumn(title='Name', cell_renderer=Gtk.CellRendererText(editable=True), text=0))
+		type_input = Gtk.CellRendererCombo(editable=True, model=prop_types_list)
+		type_input.set_property('text-column', 0)
+		type_input.set_property('has-entry', False)
+		def on_type_change(widget, path, val):
+			props_model[path][1] = val
+		type_input.connect('edited', on_type_change)
+		props_view.append_column(Gtk.TreeViewColumn(title='Type', cell_renderer=type_input, text=1))
+		default_props_box.add(props_view)
+
 		self.stack_pages = {
 			'UI': ui_box,
 			'Center Toolbar Items': center_toolbar_items_box,
 			'Behavior': behavior_box,
 			'History': history_box,
-			'TagSpace Defaults': Gtk.Box(),
+			'Tags': default_tags_box,
+			'Props': default_props_box,
 			'Slideshow': Gtk.Box()
 		}
 
