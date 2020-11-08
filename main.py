@@ -189,14 +189,26 @@ class SettingsWindow(Gtk.Dialog):
 		behavior_box = generate_settings_panel('General Behavior Settings',
 			('Persist Media on Sort Change', 'switch', None, self.conf['behavior']['persist_media_on_sort_change'], set_media_persistence,
 				'If true, change the media index to keep the shown media the same when the sort method is changed. If false, keep the index \
-the same, changing the media'),
+the same, changing the media.'),
+		)
+
+		def set_save_history(val):
+			self.conf['behavior']['history']['save_history'] = val
+		def set_auto_resume(val):
+			self.conf['behavior']['history']['auto_resume'] = val
+
+		history_box = generate_settings_panel('History Settings',
+			('Save History', 'switch', None, self.conf['behavior']['history']['save_history'], set_save_history, 'Save the history of opened TagSpaces in a Recently \
+Opened menu? Disabling this setting will stop the saving of these entries and will hide the Recently Opened menu, but will not purge the previous history.'),
+			('Automatically Reopen Previous TagSpace', 'switch', None, self.conf['behavior']['history']['auto_resume'], set_auto_resume, 'If a previous TagSpace is \
+saved, should it be opened automatically?'),
 		)
 
 		self.stack_pages = {
 			'UI': ui_box,
 			'Center Toolbar Items': center_toolbar_items_box,
 			'Behavior': behavior_box,
-			'History': Gtk.Box(),
+			'History': history_box,
 			'TagSpace Defaults': Gtk.Box(),
 			'Slideshow': Gtk.Box()
 		}

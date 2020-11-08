@@ -8,9 +8,8 @@ in_fullscreen = true
 
 [behavior]
 persist_media_on_sort_change = true # If true, change the media index to keep the shown media the same when the sort method is changed. If false, keep the index the same, changing the media
-[behavior.history] # the first two options are completely independent.
+[behavior.history]
 save_history = true # save TagSpace history? (for Recently Opened)
-save_previous = true # save previous TagSpace?
 auto_resume = false # if a previous TagSpace is saved, should it be opened automatically? (depends on save_previous)
 [behavior.tagspace_defaults]
 tags = [
