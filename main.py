@@ -191,8 +191,8 @@ class SettingsWindow(Gtk.Dialog):
 
 		behavior_box = generate_settings_panel('General Behavior Settings',
 			('Persist Media on Sort Change', 'switch', None, self.conf['behavior']['persist_media_on_sort_change'], set_media_persistence,
-				'If true, change the media index to keep the shown media the same when the sort method is changed. If false, keep the index \
-the same, changing the media.'),
+			 'If true, change the media index to keep the shown media the same when the sort method is changed. If false, keep the index '
+			 'the same, changing the media.'),
 		)
 
 		def set_save_history(val):
@@ -201,10 +201,11 @@ the same, changing the media.'),
 			self.conf['behavior']['history']['auto_resume'] = val
 
 		history_box = generate_settings_panel('History Settings',
-			('Save History', 'switch', None, self.conf['behavior']['history']['save_history'], set_save_history, 'Save the history of opened TagSpaces in a Recently \
-Opened menu? Disabling this setting will stop the saving of these entries and will hide the Recently Opened menu, but will not purge the previous history.'),
-			('Automatically Reopen Previous TagSpace', 'switch', None, self.conf['behavior']['history']['auto_resume'], set_auto_resume, 'If a previous TagSpace is \
-saved, should it be opened automatically?'),
+			('Save History', 'switch', None, self.conf['behavior']['history']['save_history'], set_save_history, 'Save the history of opened TagSpaces in a Recently '
+			 'Opened menu? Disabling this setting will stop the saving of these entries and will hide the Recently Opened menu, but will not purge the previous '
+			 'history.'),
+			('Automatically Reopen Previous TagSpace', 'switch', None, self.conf['behavior']['history']['auto_resume'], set_auto_resume, 'If a previous TagSpace is '
+			 'saved, should it be opened automatically?'),
 		)
 
 		default_tags_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -313,8 +314,8 @@ class MainWindow(Gtk.Window):
 		except GLib.Error as e:
 			if e.domain == 'gtk-css-provider-error-quark':  # Error parsing injections
 				msg = Gtk.MessageDialog(message_type=Gtk.MessageType.ERROR, text="The CSS injections could not be parsed.", buttons=Gtk.ButtonsType.OK_CANCEL)
-				msg.format_secondary_text("If you choose OK, the injections will not be applied. \
-Alternatively, you can exit to edit the injections by selecting Cancel.")
+				msg.format_secondary_text("If you choose OK, the injections will not be applied. "
+				"Alternatively, you can exit to edit the injections by selecting Cancel.")
 				response = msg.run()
 				msg.hide()
 				if response == Gtk.ResponseType.CANCEL:
@@ -471,12 +472,12 @@ Alternatively, you can exit to edit the injections by selecting Cancel.")
 			for btn in filter(lambda item: item.endswith('button'), top_bar_items):
 				item = top_bar_items[btn]
 				if btn == 'fullscreen_toggle_button':
-					item.get_icon_widget().set_from_file(f'icons/\
-{"dark" if model["dark_mode"] else "light"}/\
-{"fullscreen_exit" if model["is_fullscreen"] else "fullscreen"}.svg')
+					item.get_icon_widget().set_from_file(f'icons/'
+					f'{"dark" if model["dark_mode"] else "light"}/'
+					f'{"fullscreen_exit" if model["is_fullscreen"] else "fullscreen"}.svg')
 				else:
-					item.get_icon_widget().set_from_file(f'icons/\
-{"dark" if model["dark_mode"] else "light"}/{item.icon_name}.svg')
+					item.get_icon_widget().set_from_file(f'icons/'
+					f'{"dark" if model["dark_mode"] else "light"}/{item.icon_name}.svg')
 		self.state.bind('dark_mode', invert_icon_colors)
 
 		def toggle_fullscreen():
@@ -491,8 +492,8 @@ Alternatively, you can exit to edit the injections by selecting Cancel.")
 		self.about_dialog.set_program_name('TagViewer 2')
 		self.about_dialog.set_version(VERSION)
 		self.about_dialog.set_copyright('Copyright (C) 2020  Matt Fellenz, under the GPL 3.0')
-		self.about_dialog.set_comments('A simple program that allows viewing of media within a TagSpace, \
-and rich filtering of that media with tags and properties that are stored by the program.')
+		self.about_dialog.set_comments('A simple program that allows viewing of media within a TagSpace, '
+		'and rich filtering of that media with tags and properties that are stored by the program.')
 		with open('LICENSE') as f:
 			self.about_dialog.set_license(''.join(f.readlines()))
 		self.about_dialog.set_website('https://github.com/tagviewer/tagviewer2')
