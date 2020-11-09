@@ -512,7 +512,7 @@ class MainWindow(Gtk.Window):
 		def show_settings_dialog(*_):
 			settings_dialog = SettingsWindow(self, self.config, self.state)
 			settings_dialog.run()
-			settings_dialog.hide()
+			settings_dialog.destroy()
 
 		self.top_bar_items['settings_button'].connect('clicked', show_settings_dialog)
 
