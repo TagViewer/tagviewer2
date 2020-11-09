@@ -142,7 +142,7 @@ class SettingsWindow(Gtk.Dialog):
 					control.set_active(setting[3])
 					control.connect('toggled', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_active()))
 				elif setting[1] == 'int':
-					control = Gtk.SpinButton(adjustment=Gtk.Adjustment(value=setting[3], lower=setting[2][0], upper=setting[2][1], step_incr=setting[2][2]))
+					control = Gtk.SpinButton(adjustment=Gtk.Adjustment(value=setting[3], lower=setting[2][0], upper=setting[2][1], step_increment=setting[2][2]))
 					control.connect('value-changed', lambda self, *_, callbackfn=setting[4]: callbackfn(self.get_value()))
 				container.attach(control, 1, i, 1, 1)
 				if setting[5] is not None:
