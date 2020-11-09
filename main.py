@@ -488,6 +488,8 @@ class MainWindow(Gtk.Window):
 			self.state['dark_mode'] = not self.state['dark_mode']
 		self.top_bar_items['dark_mode_toggle_button'].connect('clicked', lambda widget: toggle_dark_mode())
 
+		self.top_bar_items['new_tagspace_button'].connect('clicked', lambda widget: self.new_tagspace())
+
 		self.about_dialog = Gtk.AboutDialog()
 		self.about_dialog.set_program_name('TagViewer 2')
 		self.about_dialog.set_version(VERSION)
@@ -593,6 +595,9 @@ class MainWindow(Gtk.Window):
 		self.top_bar_items['left_expander'].set_expand(
 			self.config['ui']['center_toolbar_items']['in_fullscreen' if self.state['is_fullscreen'] else 'in_normal']
 		)
+
+	def new_tagspace(self):
+		pass  # TODO: code to make a new TagSpace
 
 	def exit_handler(self, *_):
 		with open(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'), 'w') as config_file:
