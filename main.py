@@ -241,6 +241,21 @@ saved, should it be opened automatically?'),
 		props_view.append_column(Gtk.TreeViewColumn(title='Type', cell_renderer=type_input, text=1))
 		default_props_box.add(props_view)
 
+		def set_slideshow_interval(val):
+			self.conf['behavior']['slideshow']['interval'] = round(val * 1000)
+		def set_end_on_fs_exit(val):
+			self.conf['behavior']['slideshow']['end_on_fs_exit'] = val
+		def set_slideshow_stop_at_end(val):
+			self.conf['behavior']['slideshow']['stop_at_end'] = val
+		slideshow_box = generate_settings_panel('Slideshow Settings',
+			('Interval', 'int', (0.01, None, 0.001), self.conf['behavior']['slideshow']['interval'] / 1000, set_slideshow_interval,
+			 'How long to show each item in the slideshow, in seconds'),
+			('End on Fullscreen Exit', 'switch', None, self.conf['behavior']['slideshow']['end_on_fullscreen_exit'], set_end_on_fs_exit,
+			 'If a slideshow is playing and the application is in fullscreen, should the slideshow be stopped when you exit fullscreen?'),
+			('Stop at End', 'switch', None, self.conf['behavior']['slideshow']['stop_at_end'], set_slideshow_stop_at_end,
+			 'Should the slideshow be stopped when the last item is reached? If false, keep going, wrapping back around to the first item.'),
+		)
+
 		self.stack_pages = {
 			'UI': ui_box,
 			'Center Toolbar Items': center_toolbar_items_box,
@@ -248,7 +263,7 @@ saved, should it be opened automatically?'),
 			'History': history_box,
 			'Tags': default_tags_box,
 			'Props': default_props_box,
-			'Slideshow': Gtk.Box()
+			'Slideshow': slideshow_box
 		}
 
 		self.content_stack = Gtk.Stack()
