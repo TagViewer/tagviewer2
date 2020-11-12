@@ -369,7 +369,7 @@ class NewTagSpaceWindow(Gtk.Assistant):
 				'tags': convert_list_store_to_list(tags_model),
 				'props': convert_list_store_to_list(props_model),
 			})
-			self.destroy()
+			self.close()
 		self.connect('apply', finish_handler)
 		self.show_all()
 
