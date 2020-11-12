@@ -46,6 +46,10 @@ class SortMethods(Enum):
 	SORT_FT = enumauto()
 
 
+def convert_list_store_to_list(list_store):
+	return list(map(list, a))
+
+
 def open_file(filename: str):
 	'''Open file with default application.'''
 	useros = platform.system()
@@ -291,6 +295,83 @@ class SettingsWindow(Gtk.Dialog):
 		self.base.pack_start(button_box, False, False, 5)
 
 		self.base.show_all()
+
+
+class NewTagSpaceWindow(Gtk.Assistant):
+	def __init__(self, parent, conf, state):
+		Gtk.Assistant.__init__(self)
+		self.conf = conf
+		self.state = state
+
+		basic_info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		title_input_label = Gtk.Label(label='Title*')
+		title_input_label.set_tooltip_text("Please fill out this field.")
+		basic_info_box.add(title_input_label)
+		title_input = Gtk.Entry()
+		basic_info_box.add(title_input)
+		basic_info_box.add(Gtk.Label(label='Description'))
+		desc_input = Gtk.Entry()
+		basic_info_box.add(desc_input)
+
+		basic_info_page = self.get_nth_page(self.append_page(basic_info_box))
+		self.set_page_title(basic_info_page, "Basic Information")
+		self.set_page_type(basic_info_page, Gtk.AssistantPageType.CONTENT)
+		def basic_info_set_complete(the_input, *_):
+			self.set_page_complete(basic_info_page, len(the_input.get_text()) > 0)
+		title_input.connect('changed', basic_info_set_complete)
+
+		tags_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		tags_model = Gtk.ListStore(str, str)
+		for row in self.conf['behavior']['tagspace_defaults']['tags']: tags_model.append(row)
+		tags_view = Gtk.TreeView(model=tags_model)
+		tags_view.append_column(Gtk.TreeViewColumn(title='Name', cell_renderer=Gtk.CellRendererText(editable=True), text=0))
+		color_renderer = Gtk.CellRendererText(editable=True)  # TODO: make this be a ColorButton
+		tags_view.append_column(Gtk.TreeViewColumn(title='Color', cell_renderer=color_renderer, text=1))
+		tags_box.add(tags_view)
+		tags_page = self.get_nth_page(self.append_page(tags_box))
+		self.set_page_title(tags_page, "Tags")
+		self.set_page_type(tags_page, Gtk.AssistantPageType.CONTENT)
+		self.set_page_complete(tags_page, True)
+
+		props_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		prop_types_list = Gtk.ListStore(str)
+		for prop_type in ['Text', 'True/False', 'Number']:
+			prop_types_list.append([prop_type])
+		props_model = Gtk.ListStore(str, str)  # int represents an enum of the possible types
+		for row in self.conf['behavior']['tagspace_defaults']['props']: props_model.append(row)
+		props_view = Gtk.TreeView(model=props_model)
+		props_view.append_column(Gtk.TreeViewColumn(title='Name', cell_renderer=Gtk.CellRendererText(editable=True), text=0))
+		type_input = Gtk.CellRendererCombo(editable=True, model=prop_types_list)
+		type_input.set_property('text-column', 0)
+		type_input.set_property('has-entry', False)
+		def on_type_change(widget, path, val):
+			props_model[path][1] = val
+		type_input.connect('edited', on_type_change)
+		props_view.append_column(Gtk.TreeViewColumn(title='Type', cell_renderer=type_input, text=1))
+		props_box.add(props_view)
+
+		props_page = self.get_nth_page(self.append_page(props_box))
+		self.set_page_title(props_page, "Props")
+		self.set_page_type(props_page, Gtk.AssistantPageType.CONTENT)
+		self.set_page_complete(props_page, True)
+
+		final_page = self.get_nth_page(self.append_page(Gtk.Label(label="The TagSpace is ready to be created.")))
+		self.set_page_title(final_page, "End")
+		self.set_page_type(final_page, Gtk.AssistantPageType.CONFIRM)
+		self.set_page_complete(final_page, True)
+
+		self.connect('close', lambda self, *_: self.destroy())
+		self.connect('cancel', lambda self, *_: self.destroy())
+		def finish_handler(self, *_):
+			parent._create_tagspace({
+				'title': title_input.get_text(),
+				'desc': desc_input.get_text(),
+				'tags': convert_list_store_to_list(tags_model),
+				'props': convert_list_store_to_list(props_model),
+			})
+			self.destroy()
+		self.connect('apply', finish_handler)
+		self.show_all()
 
 
 class MainWindow(Gtk.Window):
@@ -597,7 +678,10 @@ class MainWindow(Gtk.Window):
 		)
 
 	def new_tagspace(self):
-		pass  # TODO: code to make a new TagSpace
+		win = NewTagSpaceWindow(self, self.config, self.state)
+
+	def _create_tagspace(self, data):
+		pass  # TODO: Actually make the TagSpace
 
 	def exit_handler(self, *_):
 		with open(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'), 'w') as config_file:
