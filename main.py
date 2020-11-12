@@ -47,7 +47,7 @@ class SortMethods(Enum):
 
 
 def convert_list_store_to_list(list_store):
-	return list(map(list, a))
+	return list(map(list, list_store))
 
 
 def open_file(filename: str):
