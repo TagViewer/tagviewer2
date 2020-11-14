@@ -402,7 +402,7 @@ class MainWindow(Gtk.Window):
 
 		self.state = StateMan({
 			'tagviewer_meta': {},
-			'files': (lambda model: model['tagviewer_meta']['files'] if 'files' in tagviewer_meta else [], ('tagviewer_meta',)),
+			'files': (lambda model: model['tagviewer_meta']['files'] if 'files' in model['tagviewer_meta'] else [], ('tagviewer_meta',)),
 			'open_directory': None,
 			'media_number': 1,
 			'filters': [],
@@ -421,7 +421,7 @@ class MainWindow(Gtk.Window):
 			'can_go_previous': (lambda model: model['media_number'] > 1, ('media_number',)),
 			'can_go_next': (lambda model: len(model['files']) > 0 and len(model['files']) > model['media_number'], ('files', 'media_number')),
 			# ↓ deps doesn't include `files` intentionally!
-			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in files else {}, ('media_number',)),
+			'current_item': (lambda model: model['files'][model['media_number']] if model['media_number'] in model['files'] else {}, ('media_number',)),
 			'current_path': (lambda model: model['current_item']['_path'] if model['media_is_open'] else None, ('current_item', 'media_is_open')),
 			'current_tags': (lambda model: list(map(lambda x: model['tagviewer_meta']['tagList'][x], model['current_item']['tags']))
 			                 if 'tagList' in model['tagviewer_meta'] else [],
