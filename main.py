@@ -673,7 +673,7 @@ class MainWindow(Gtk.Window):
 		)
 
 	def new_tagspace(self):
-		win = NewTagSpaceWindow(self, self.config, self.state)
+		NewTagSpaceWindow(self, self.config, self.state)
 
 	def _create_tagspace(self, title, desc, tags, props):
 		pass  # TODO: Actually make the TagSpace
