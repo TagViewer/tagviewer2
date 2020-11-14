@@ -699,7 +699,7 @@ def graphical_except_hook(exctype, value, tb):
 	except NameError:
 		pass
 	exit(1)
-sys.excepthook = graphical_except_hook
+sys.excepthook = graphical_except_hook  # noqa: E305
 
 win = MainWindow()
 win.connect("destroy", win.exit_handler)
