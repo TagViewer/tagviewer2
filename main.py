@@ -363,12 +363,7 @@ class NewTagSpaceWindow(Gtk.Assistant):
 		self.connect('close', lambda self, *_: self.destroy())
 		self.connect('cancel', lambda self, *_: self.destroy())
 		def finish_handler(self, *_):
-			parent._create_tagspace({
-				'title': title_input.get_text(),
-				'desc': desc_input.get_text(),
-				'tags': convert_list_store_to_list(tags_model),
-				'props': convert_list_store_to_list(props_model),
-			})
+			parent._create_tagspace(title_input.get_text(), desc_input.get_text(), convert_list_store_to_list(tags_model), convert_list_store_to_list(props_model))
 			self.close()
 		self.connect('apply', finish_handler)
 		self.show_all()
@@ -680,7 +675,7 @@ class MainWindow(Gtk.Window):
 	def new_tagspace(self):
 		win = NewTagSpaceWindow(self, self.config, self.state)
 
-	def _create_tagspace(self, data):
+	def _create_tagspace(self, title, desc, tags, props):
 		pass  # TODO: Actually make the TagSpace
 
 	def exit_handler(self, *_):
