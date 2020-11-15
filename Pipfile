@@ -10,6 +10,7 @@ pycodestyle = "*"
 toml = "*"
 appdirs = "*"
 pygobject = "*"
+send2trash = "*"
 
 [requires]
 python_version = "3.8"

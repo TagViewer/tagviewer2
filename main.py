@@ -7,8 +7,10 @@ from enum import auto as enumauto
 from operator import itemgetter
 from os import path
 import platform
+from send2trash import send2trash
 from shutil import copyfile
 import sys
+from pathlib import Path
 from threading import Timer
 from typing import Callable, Optional
 
@@ -61,6 +63,11 @@ def open_file(filename: str):
 		subprocess.Popen(['xdg-open', filename])
 	else:
 		raise OSError(f"No suitable file opening utility was found for your operating system. Please open the file manually; the path is “{filename}”.")
+
+
+def trash_dir_contents(dirname: str):
+	for entname in Path(dirname).glob('*'):
+		send2trash(str(entname.resolve()))
 
 
 def debounce(wait):
