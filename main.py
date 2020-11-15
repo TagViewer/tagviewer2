@@ -305,7 +305,7 @@ class SettingsWindow(Gtk.Dialog):
 
 
 class NewTagSpaceWindow(Gtk.Assistant):
-	def __init__(self, parent, conf, state):
+	def __init__(self, parent, conf, state, dirname):
 		Gtk.Assistant.__init__(self)
 		self.conf = conf
 		self.state = state
@@ -370,7 +370,8 @@ class NewTagSpaceWindow(Gtk.Assistant):
 		self.connect('close', lambda self, *_: self.destroy())
 		self.connect('cancel', lambda self, *_: self.destroy())
 		def finish_handler(self, *_):
-			parent._create_tagspace(title_input.get_text(), desc_input.get_text(), convert_list_store_to_list(tags_model), convert_list_store_to_list(props_model))
+			parent._create_tagspace(dirname, title_input.get_text(), desc_input.get_text(),
+				convert_list_store_to_list(tags_model), convert_list_store_to_list(props_model))
 			self.close()
 		self.connect('apply', finish_handler)
 		self.show_all()
@@ -680,10 +681,71 @@ class MainWindow(Gtk.Window):
 		)
 
 	def new_tagspace(self):
-		NewTagSpaceWindow(self, self.config, self.state)
+		cancelled = False
 
-	def _create_tagspace(self, title, desc, tags, props):
-		pass  # TODO: Actually make the TagSpace
+		while True:
+			choose_dialog = Gtk.FileChooserDialog(title="Choose folder for new TagSpace", parent=self, action=Gtk.FileChooserAction.SELECT_FOLDER)
+			choose_dialog.add_buttons(Gtk.STOCK_CANCEL, -4, 'Use', 0)
+			response = choose_dialog.run()
+			dirname = choose_dialog.get_filename()
+			choose_dialog.destroy()
+			if response == -4:
+				cancelled = True
+				break
+			assert path.isdir(dirname)
+			if dir_contents := os.listdir(dirname):  # directory has contents, warn user
+				if 'tagviewer.json' in dir_contents:
+					is_a_tagspace_dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.NONE, text="The directory you selected appears to be a TagSpace.")
+					is_a_tagspace_dialog.format_secondary_text("If you meant to open this TagSpace, click “Open Existing TagSpace”.\n"
+					"You can choose a different directory by clicking “Retry”.\n"
+					"If you choose “Use Anyway”, the contents of the directory will be moved to trash.")
+					is_a_tagspace_dialog.add_buttons(Gtk.STOCK_CANCEL, 0, "Open Existing TagSpace", 1, "Retry", 2, "Use Anyway", 3)
+					response = is_a_tagspace_dialog.run()
+					is_a_tagspace_dialog.destroy()
+					if response == 0:  # cancel
+						cancelled = True
+						break
+					elif response == 1:  # open existing
+						cancelled = True
+						self._open_tagspace(dirname)
+						break
+					elif response == 2:  # retry
+						continue
+					elif response == 3:  # use anyway
+						trash_dir_contents(dirname)
+						break
+				else:
+					nonempty_warn_dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.NONE, text="The directory you selected has contents.")
+					nonempty_warn_dialog.format_secondary_text("If you meant to import the media into a TagSpace, "
+					"please create a new directory and select that as the location by clicking “Retry”.\n"
+					"If you choose “Use Anyway”, the contents of the directory will be moved to trash.")
+					nonempty_warn_dialog.add_buttons(Gtk.STOCK_CANCEL, 0, "Retry", 1, "Use Anyway", 2)
+					response = nonempty_warn_dialog.run()
+					nonempty_warn_dialog.destroy()
+					if response == 0:  # cancel
+						cancelled = True
+						break
+					elif response == 1:  # retry
+						continue
+					elif response == 2:  # use anyway
+						trash_dir_contents(dirname)
+						break
+			else: break
+
+		if not cancelled:
+			NewTagSpaceWindow(self, self.config, self.state, dirname)
+
+	def _create_tagspace(self, dirname, title, desc, tags, props):
+		with open(path.join(dirname, 'tagviewer.json'), 'w') as jsonfile:
+			json.dump({
+				'title': title,
+				'description': desc,
+				'tagList': tags,
+				'deletedTags': [],
+				'propList': props,
+				'files': [],
+				'currentIndex': 0
+			}, jsonfile)
 
 	def exit_handler(self, *_):
 		with open(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'), 'w') as config_file:
