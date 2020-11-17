@@ -435,6 +435,7 @@ class MainWindow(Gtk.Window):
 			                 if 'tagList' in model['tagviewer_meta'] else [],
 			                 ('current_item', 'tagviewer_meta'))
 		}, refs={'win': self, 'conf': self.config, 'cache': self.cache, 'settings': Gtk.Settings.get_default(), 'injections_provider': css_provider_2})
+		# self.state.bind_all(lambda event, model, propname: print(f'{propname} [{event}]: {model[propname]}'))
 
 		def handle_fullscreen_change(model, _):
 			if model['is_fullscreen']:
