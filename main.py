@@ -468,6 +468,17 @@ class MainWindow(Gtk.Window):
 
 		self.state.bind('injections', handle_injections_change)
 
+		def handle_open_directory_change(model, _):
+			val = model['open_directory']
+			model.refs['cache']['open_directory'] = val
+			try:
+				model.refs['cache']['open_history'].remove(val)  # since any location will only be in the list once, we don't need to worry about multiple occurences.
+			except ValueError:
+				pass  # means it's not contained in the list, which is fine. The try-to-remove approach is faster than first checking for containment.
+			model.refs['cache']['open_history'].append(val)  # in contrast to TagViewer 1, the Open History list will be from least recent to most recent.
+
+		self.state.bind('open_directory', handle_open_directory_change)
+
 		css_provider = Gtk.CssProvider()
 		css_provider.load_from_path('main.css')
 		context = Gtk.StyleContext()
@@ -571,6 +582,8 @@ class MainWindow(Gtk.Window):
 		def toggle_dark_mode():
 			self.state['dark_mode'] = not self.state['dark_mode']
 		self.top_bar_items['dark_mode_toggle_button'].connect('clicked', lambda widget: toggle_dark_mode())
+
+		self.top_bar_items['open_tagspace_button'].connect('clicked', lambda widget: self.open_tagspace())
 
 		self.top_bar_items['new_tagspace_button'].connect('clicked', lambda widget: self.new_tagspace())
 
@@ -746,6 +759,45 @@ class MainWindow(Gtk.Window):
 				'files': [],
 				'currentIndex': 0
 			}, jsonfile)
+
+	def open_tagspace(self):
+		cancelled = False
+		while True:
+			choose_dialog = Gtk.FileChooserDialog(title="Choose TagSpace to open", parent=self, action=Gtk.FileChooserAction.SELECT_FOLDER)
+			choose_dialog.add_buttons(Gtk.STOCK_CANCEL, -4, Gtk.STOCK_OPEN, 0)
+			response = choose_dialog.run()
+			dirname = choose_dialog.get_filename()
+			choose_dialog.destroy()
+			if response == -4:  # cancel
+				cancelled = True
+				break
+			elif response == 0:  # open
+				if (Path(dirname) / 'tagviewer.json').exists():  # continue
+					break
+				else:
+					not_a_tagspace_dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.NONE, text="The directory you selected is not a TagSpace.")
+					not_a_tagspace_dialog.format_secondary_text("If you meant to make a new TagSpace in this directory, choose “Create TagSpace Here”.\n"
+					"To pick another directory, choose “Retry”.")
+					not_a_tagspace_dialog.add_buttons(Gtk.STOCK_CANCEL, -4, 'Create TagSpace Here', 0, 'Retry', 1)
+					response = not_a_tagspace_dialog.run()
+					not_a_tagspace_dialog.destroy()
+					if response == -4:  # cancel
+						cancelled = True
+						break
+					elif response == 0:  # create tagspace here
+						cancelled = True
+						NewTagSpaceWindow(self, self.config, self.state, dirname)
+						break
+					elif response == 1:  # retry
+						continue
+		if not cancelled:
+			self._open_tagspace(dirname)
+
+	def _open_tagspace(self, dirname):
+		dirpath = Path(dirname).resolve()
+		with open(str(dirpath / 'tagviewer.json'), 'r') as meta_file:
+			self.state['tagviewer_meta'] = json.load(meta_file)
+		self.state['open_directory'] = str(dirpath)
 
 	def exit_handler(self, *_):
 		with open(path.join(appdirs.user_config_dir('tagviewer'), 'config.toml'), 'w') as config_file:
